@@ -28,10 +28,7 @@ class PagesTimestampTable extends DataManager
             )),
             new StringField('URL', array(
                 'required' => true,
-                'title' => Loc::getMessage('NAME'),
-                'default_value' => function () {
-                    return Loc::getMessage('NAME_DEFAULT_VALUE');
-                },
+                'title' => Loc::getMessage('URL'),
                 'validation' => function () {
                     return array(
                         new Validator\Length(null, 255),
@@ -40,10 +37,7 @@ class PagesTimestampTable extends DataManager
             )),
             new StringField('HASH', array(
                 'required' => true,
-                'title' => Loc::getMessage('NAME'),
-                'default_value' => function () {
-                    return Loc::getMessage('NAME_DEFAULT_VALUE');
-                },
+                'title' => Loc::getMessage('HASH'),
                 'validation' => function () {
                     return array(
                         new Validator\Length(null, 255),
@@ -52,10 +46,7 @@ class PagesTimestampTable extends DataManager
             )),
             new StringField('LAST_MODIFIED', array(
                 'required' => true,
-                'title' => Loc::getMessage('NAME'),
-                'default_value' => function () {
-                    return Loc::getMessage('NAME_DEFAULT_VALUE');
-                },
+                'title' => Loc::getMessage('LAST_MODIFIED'),
                 'validation' => function () {
                     return array(
                         new Validator\Length(null, 255),
