@@ -6,38 +6,48 @@ use Bitrix\Main\EventManager;
 
 Loader::registerAutoLoadClasses('shestpa.lastmodified', array(
     'Shestpa\Lastmodified\PagesTimestampTable' => 'lib/PagesTimestampTable.php',
+    'Shestpa\Lastmodified\PagesBufferPurifier' => 'lib/PagesBufferPurifier.php'
 ));
 
-EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', function(&$content){
-    if (!defined("ADMIN_SECTION")) {
+EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', function($content){
+    if (!defined('ADMIN_SECTION') && !defined('ERROR_404')) {
 
         global $USER, $APPLICATION;
         $page = $APPLICATION->GetCurPage();
         $arGroups = $USER->GetUserGroupArray();
 
-        $hash = md5($content.implode('', $arGroups));
+        Shestpa\Lastmodified\PagesBufferPurifier::deleteKernelJs($content);
+        Shestpa\Lastmodified\PagesBufferPurifier::deleteKernelCss($content);
+
+        $hash = md5($content);
+
+        $pageHash = md5($page.implode('', $arGroups));
 
         $lastModified = time();
         $date = gmdate('D, d M Y H:i:s T', $lastModified);
 
         $res = Shestpa\Lastmodified\PagesTimestampTable::getList(
             array(
-                'filter' => array('URL' => $page)
+                'filter' => array('URL' => $pageHash)
             )
         )->fetch();
 
         if(!$res): // No hash in DB
             Shestpa\Lastmodified\PagesTimestampTable::add(
                 array(
-                    "URL" => $page,
+                    "URL" => $pageHash,
                     "LAST_MODIFIED" => $date,
                     "HASH" => $hash
                 )
             );
+
+            $status = 'added';
+
         else:
             if($res['HASH'] == $hash): // Not modified
                 $date = $res['LAST_MODIFIED'];
                 $lastModified = strtotime($res['LAST_MODIFIED']);
+                $status = 'notmod';
             else: // Modified
                 Shestpa\Lastmodified\PagesTimestampTable::update(
                     $res['ID'],
@@ -46,6 +56,7 @@ EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', funct
                         "HASH" => $hash
                     )
                 );
+                $status = 'mod';
             endif;
         endif;
 
@@ -67,6 +78,6 @@ EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', funct
             }
         }
 
-        header('Hash-Modified: '.$hash);
+        header('Hash-Modified: '.$status.$hash);
     }
 });
