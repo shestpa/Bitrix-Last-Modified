@@ -15,21 +15,23 @@ EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', funct
         $page = $APPLICATION->GetCurPage();
         $arGroups = $USER->GetUserGroupArray();
 
-        $hash = md5($content.implode('', $arGroups));
+        $hash = md5($content);
+
+        $pageHash = md5($page.implode('', $arGroups));
 
         $lastModified = time();
         $date = gmdate('D, d M Y H:i:s T', $lastModified);
 
         $res = Shestpa\Lastmodified\PagesTimestampTable::getList(
             array(
-                'filter' => array('URL' => $page)
+                'filter' => array('URL' => $pageHash)
             )
         )->fetch();
 
         if(!$res): // No hash in DB
             Shestpa\Lastmodified\PagesTimestampTable::add(
                 array(
-                    "URL" => $page,
+                    "URL" => $pageHash,
                     "LAST_MODIFIED" => $date,
                     "HASH" => $hash
                 )
@@ -66,7 +68,6 @@ EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', funct
                 }
             }
         }
-
         header('Hash-Modified: '.$hash);
     }
 });
