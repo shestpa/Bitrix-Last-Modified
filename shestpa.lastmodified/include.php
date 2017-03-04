@@ -6,14 +6,18 @@ use Bitrix\Main\EventManager;
 
 Loader::registerAutoLoadClasses('shestpa.lastmodified', array(
     'Shestpa\Lastmodified\PagesTimestampTable' => 'lib/PagesTimestampTable.php',
+    'Shestpa\Lastmodified\PagesBufferPurifier' => 'lib/PagesBufferPurifier.php'
 ));
 
-EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', function(&$content){
-    if (!defined("ADMIN_SECTION")) {
+EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', function($content){
+    if (!defined('ADMIN_SECTION') && !defined('ERROR_404')) {
 
         global $USER, $APPLICATION;
         $page = $APPLICATION->GetCurPage();
         $arGroups = $USER->GetUserGroupArray();
+
+        Shestpa\Lastmodified\PagesBufferPurifier::deleteKernelJs($content);
+        Shestpa\Lastmodified\PagesBufferPurifier::deleteKernelCss($content);
 
         $hash = md5($content);
 
@@ -36,10 +40,14 @@ EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', funct
                     "HASH" => $hash
                 )
             );
+
+            $status = 'added';
+
         else:
             if($res['HASH'] == $hash): // Not modified
                 $date = $res['LAST_MODIFIED'];
                 $lastModified = strtotime($res['LAST_MODIFIED']);
+                $status = 'notmod';
             else: // Modified
                 Shestpa\Lastmodified\PagesTimestampTable::update(
                     $res['ID'],
@@ -48,6 +56,7 @@ EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', funct
                         "HASH" => $hash
                     )
                 );
+                $status = 'mod';
             endif;
         endif;
 
@@ -68,6 +77,7 @@ EventManager::getInstance()->addEventHandler('main', 'OnEndBufferContent', funct
                 }
             }
         }
-        header('Hash-Modified: '.$hash);
+
+        header('Hash-Modified: '.$status.$hash);
     }
 });
