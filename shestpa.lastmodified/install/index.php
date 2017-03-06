@@ -39,8 +39,8 @@ class shestpa_lastmodified extends CModule
     public function __construct()
     {
         $this->MODULE_ID = 'shestpa.lastmodified';
-        $this->MODULE_VERSION = '0.0.9';
-        $this->MODULE_VERSION_DATE = '2017-04-04 03:00:00';
+        $this->MODULE_VERSION = '0.1.0';
+        $this->MODULE_VERSION_DATE = '2017-03-06 10:00:00';
         $this->MODULE_NAME = Loc::getMessage('MODULE_NAME');
         $this->MODULE_DESCRIPTION = Loc::getMessage('MODULE_DESCRIPTION');
         $this->MODULE_GROUP_RIGHTS = 'N';
